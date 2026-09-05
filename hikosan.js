@@ -19,8 +19,8 @@ const cores  = navigator.hardwareConcurrency || 4;
 const HIGH   = !coarse && cores >= 8 && innerWidth >= 900;
 
 const Q = HIGH
-  ? { shadows: true,  dpr: 2,   cedars: 1100, steps: 824, posts: 64, terrain: 240, roofSeg: 40, shide: true }
-  : { shadows: false, dpr: 1.5, cedars: 380,  steps: 480, posts: 34, terrain: 140, roofSeg: 22, shide: false };
+  ? { shadows: true,  dpr: 2,   cedars: 1100, steps: 824, posts: 64, terrain: 320, roofSeg: 40, shide: true }
+  : { shadows: false, dpr: 1.5, cedars: 380,  steps: 480, posts: 34, terrain: 180, roofSeg: 22, shide: false };
 
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -209,6 +209,40 @@ function plaqueTexture() {
   return t;
 }
 
+/* Forest floor: needle litter, moss and grit. Deliberately near-white —
+   the terrain tints it per-vertex, so this only supplies the break-up. */
+function groundTexture() {
+  const c = canvas(512, 512), x = c.getContext('2d');
+  x.fillStyle = '#c9c6bb';
+  x.fillRect(0, 0, 512, 512);
+  for (let i = 0; i < 60; i++) {                       // broad mottling
+    const mx = Math.random() * 512, my = Math.random() * 512, r = 30 + Math.random() * 110;
+    const g = x.createRadialGradient(mx, my, 0, mx, my, r);
+    const tone = Math.random() < 0.5 ? '150,146,128' : '186,180,164';
+    g.addColorStop(0, 'rgba(' + tone + ',' + (0.2 + Math.random() * 0.4) + ')');
+    g.addColorStop(1, 'rgba(' + tone + ',0)');
+    x.fillStyle = g;
+    x.beginPath(); x.arc(mx, my, r, 0, 6.3); x.fill();
+  }
+  for (let i = 0; i < 5000; i++) {                     // needle litter
+    const a = Math.random() * 6.3, len = 3 + Math.random() * 9;
+    const px = Math.random() * 512, py = Math.random() * 512;
+    x.strokeStyle = 'rgba(' + (110 + Math.random() * 60 | 0) + ',' +
+                              (92 + Math.random() * 46 | 0) + ',' +
+                              (66 + Math.random() * 36 | 0) + ',' + (0.1 + Math.random() * 0.35) + ')';
+    x.lineWidth = 0.9;
+    x.beginPath();
+    x.moveTo(px, py); x.lineTo(px + Math.cos(a) * len, py + Math.sin(a) * len);
+    x.stroke();
+  }
+  for (let i = 0; i < 1400; i++) {                     // grit
+    const v = 90 + Math.random() * 110 | 0;
+    x.fillStyle = 'rgba(' + v + ',' + v + ',' + (v - 12) + ',' + (0.1 + Math.random() * 0.3) + ')';
+    x.fillRect(Math.random() * 512, Math.random() * 512, 1 + Math.random() * 3, 1 + Math.random() * 3);
+  }
+  return finish(c, 88, 88);
+}
+
 /* Vertical board siding for the Hōheiden's weathered outer walls. */
 function boardTexture() {
   const c = canvas(256, 256), x = c.getContext('2d');
@@ -264,7 +298,7 @@ const M = {
   wall:    new THREE.MeshStandardMaterial({ map: texWall, roughness: 0.97 }),
   granite: new THREE.MeshStandardMaterial({ map: texGranite, roughness: 0.9 }),
   gravel:  new THREE.MeshStandardMaterial({ map: texGravel, roughness: 1 }),
-  earth:   new THREE.MeshStandardMaterial({ color: CO.earth, roughness: 1 }),
+  earth:   new THREE.MeshStandardMaterial({ map: groundTexture(), roughness: 1, vertexColors: true }),
 
   postRed: new THREE.MeshStandardMaterial({ color: CO.postRed, roughness: 0.58 }),
   mint:    new THREE.MeshStandardMaterial({ color: CO.lanternMint, roughness: 0.4,
@@ -317,7 +351,11 @@ const COURT = (() => {
   const e = sando.getPointAt(1);
   const t2 = sando.getTangentAt(1);
   const yaw = Math.atan2(t2.x, t2.z);
-  return { x: e.x + Math.sin(yaw) * 30, y: e.y + 1.7, z: e.z + Math.cos(yaw) * 30, r: 62 };
+  const ax = Math.sin(yaw), az = Math.cos(yaw);          // up-slope direction
+  return {
+    x: e.x + ax * 30, y: e.y + 1.7, z: e.z + az * 30, r: 105,
+    ex: e.x, ez: e.z, ax, az
+  };
 })();
 
 /* Path width tapers as the climb narrows. */
@@ -347,32 +385,122 @@ function nearestPath(x, z) {
 
 /* The valley floor: rises away from the path so the stair reads as
    cut into the hillside rather than laid on a plain. */
-function terrainAt(x, z) {
+function terrainSample(x, z) {
   const n = nearestPath(x, z);
-  const hill = n.y - 0.6 + Math.min(n.d * n.d * 0.028, 60)
-             + Math.sin(x * 0.07) * Math.cos(z * 0.05) * 3.2
-             + Math.sin(x * 0.19 + 1.3) * Math.cos(z * 0.16) * 1.5
-             + Math.sin(x * 0.42) * Math.sin(z * 0.37 + 2.1) * 0.7;
 
-  /* Flatten to the court, easing back into the hillside at its edge. */
-  const d = Math.hypot(x - COURT.x, z - COURT.z);
-  if (d < COURT.r) {
-    const k = THREE.MathUtils.smoothstep(d, COURT.r * 0.62, COURT.r);
-    return THREE.MathUtils.lerp(COURT.y - 0.15, hill, k);
-  }
-  return hill;
+  /* Ridges and gullies, scaled up away from the path so the valley walls
+     break into spurs instead of reading as one smooth sheet. */
+  const spur = THREE.MathUtils.smoothstep(n.d, 18, 78);
+  const relief =
+      Math.sin(x * 0.021 - z * 0.052 + 2.0) * 9.5 * spur
+    + Math.sin(x * 0.045 + z * 0.030) * 5.5 * spur
+    + Math.sin(x * 0.088 + z * 0.071 + 0.7) * 2.2 * spur
+    + Math.sin(x * 0.07) * Math.cos(z * 0.05) * 3.2
+    + Math.sin(x * 0.19 + 1.3) * Math.cos(z * 0.16) * 1.5
+    + Math.sin(x * 0.42) * Math.sin(z * 0.37 + 2.1) * 0.7;
+
+  let y = n.y - 0.6 + Math.min(n.d * n.d * 0.028, 60) + relief;
+
+  /* The court shelf: level near the shrine, easing into the hillside over a
+     long apron so the slope behind is something trees can stand on rather
+     than a wall. Only applied up-slope of the last step. */
+  const cd = Math.hypot(x - COURT.x, z - COURT.z);
+  const along = (x - COURT.ex) * COURT.ax + (z - COURT.ez) * COURT.az;
+  const flat = (1 - THREE.MathUtils.smoothstep(cd, COURT.r * 0.30, COURT.r))
+             * THREE.MathUtils.smoothstep(along, -4, 10);
+  if (flat > 0) y = THREE.MathUtils.lerp(y, COURT.y - 0.15, flat);
+
+  return { y, d: n.d, court: cd };
 }
 
+const terrainAt = (x, z) => terrainSample(x, z).y;
+
 (function buildTerrain() {
-  const g = new THREE.PlaneGeometry(700, 700, Q.terrain, Q.terrain);
+  const SPAN = 1000, MID = -300;      // covers the whole climb and the court apron
+  const g = new THREE.PlaneGeometry(SPAN, SPAN, Q.terrain, Q.terrain);
   g.rotateX(-Math.PI / 2);
   const p = g.attributes.position;
-  for (let v = 0; v < p.count; v++) p.setY(v, terrainAt(p.getX(v), p.getZ(v) - 220));
-  g.translate(0, 0, -220);
+  const dist = new Float32Array(p.count);
+
+  for (let v = 0; v < p.count; v++) {
+    const sample = terrainSample(p.getX(v), p.getZ(v) + MID);
+    p.setY(v, sample.y);
+    dist[v] = sample.d;
+  }
+  g.translate(0, 0, MID);
   g.computeVertexNormals();
+
+  /* Tint per vertex: rock on the steep faces, moss in the hollows, needle
+     litter near the path. Without this the whole hillside is one colour. */
+  const MOSS  = new THREE.Color(0x53603c);
+  const DEEP  = new THREE.Color(0x38472f);   // shaded forest floor, far out
+  const ROCK  = new THREE.Color(0x7b7466);
+  const LITTER= new THREE.Color(0x6d5c42);
+  const nrm = g.attributes.normal;
+  const col = new Float32Array(p.count * 3);
+  const c = new THREE.Color();
+
+  for (let v = 0; v < p.count; v++) {
+    const x = p.getX(v), z = p.getZ(v);
+    const steep = 1 - THREE.MathUtils.clamp((nrm.getY(v) - 0.55) / 0.42, 0, 1);
+    const far = THREE.MathUtils.clamp(dist[v] / 55, 0, 1);
+
+    c.copy(MOSS).lerp(DEEP, far * 0.8);
+    c.lerp(LITTER, (1 - far) * 0.28);              // litter gathers by the path
+    c.lerp(ROCK, steep * 0.6);                      // and rock breaks through
+
+    /* Break up any remaining flatness. */
+    const n = Math.sin(x * 0.13) * Math.cos(z * 0.11)
+            + Math.sin(x * 0.31 + 1.7) * Math.sin(z * 0.27) * 0.5;
+    c.offsetHSL(n * 0.012, n * 0.03, n * 0.045);
+
+    col[v * 3] = c.r; col[v * 3 + 1] = c.g; col[v * 3 + 2] = c.b;
+  }
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+
   const m = new THREE.Mesh(g, M.earth);
   m.receiveShadow = Q.shadows;
   scene.add(m);
+})();
+
+/* Ridges beyond the valley, so there is a horizon above the near walls
+   instead of the hillside running straight into sky. */
+(function buildHorizon() {
+  const f = frameAt(1);
+  const ahead = new THREE.Vector3(Math.sin(f.yaw), 0, Math.cos(f.yaw));
+  const mat = new THREE.MeshStandardMaterial({ color: 0x6a7a72, roughness: 1, flatShading: true });
+
+  const bands = [
+    { dist: 210, h: 120, w: 560, tint: 0x6f7f76 },
+    { dist: 300, h: 170, w: 760, tint: 0x83918a },
+    { dist: 400, h: 215, w: 980, tint: 0x97a29a }
+  ];
+
+  bands.forEach((b, bi) => {
+    const seg = 26;
+    const verts = [], idx = [];
+    for (let i = 0; i <= seg; i++) {
+      const t = i / seg, u = (t - 0.5) * b.w;
+      const peak = b.h
+        * (0.62 + 0.38 * Math.sin(t * 9.1 + bi * 2.3))
+        * (0.8 + 0.2 * Math.sin(t * 21 + bi));
+      verts.push(u, 0, 0, u, peak, 0);
+    }
+    for (let i = 0; i < seg; i++) {
+      const a = i * 2, bq = a + 1, cq = a + 2, d = a + 3;
+      idx.push(a, cq, d, a, d, bq);
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+    geo.setIndex(idx);
+    geo.computeVertexNormals();
+
+    const mesh = new THREE.Mesh(geo, mat.clone());
+    mesh.material.color.setHex(b.tint);
+    mesh.position.set(COURT.x + ahead.x * b.dist, COURT.y - 40, COURT.z + ahead.z * b.dist);
+    mesh.rotation.y = f.yaw;
+    scene.add(mesh);
+  });
 })();
 
 /* ── The 824 steps ───────────────────────────────────────────
@@ -1043,7 +1171,7 @@ scene.add(place(stoneTorii(), STONE_T, 0, 0));
    giving way to cedar as the climb steepens. */
 
 (function buildForest() {
-  const BEHIND = HIGH ? 260 : 90;          // reserved for the slope behind the court
+  const BEHIND = HIGH ? 420 : 140;         // reserved for the slope behind the court
   const N = Q.cedars, CAP = N + BEHIND;
   const trunkG = new THREE.CylinderGeometry(0.3, 0.75, 26, 6);
   const coneG  = new THREE.ConeGeometry(1.9, 32, 7);
@@ -1099,13 +1227,15 @@ scene.add(place(stoneTorii(), STONE_T, 0, 0));
   const behind = BEHIND;
   for (let i = 0; i < behind; i++) {
     const a = Math.random() * Math.PI * 2;
-    const rad = COURT.r + 8 + Math.pow(Math.random(), 0.7) * 64;
+    const rad = 42 + Math.pow(Math.random(), 0.8) * 130;
     const x = COURT.x + Math.cos(a) * rad, z = COURT.z + Math.sin(a) * rad;
     const gy = terrainAt(x, z), hs = 0.8 + Math.random() * 1.1;
     eu.set(0, Math.random() * 6.3, 0); qt.setFromEuler(eu); scl.set(hs, hs, hs);
-    pos.set(x, gy + 11 * hs, z);  trunks.setMatrixAt(n, mtx.compose(pos, qt, scl));
-    pos.set(x, gy + 27 * hs, z);  crowns.setMatrixAt(n, mtx.compose(pos, qt, scl));
-    pos.set(x, gy + 16 * hs, z);  skirts.setMatrixAt(n, mtx.compose(pos, qt, scl));
+    /* Sunk slightly: the terrain mesh samples every ~3 m, so an exactly
+       seated trunk can still hang over a dip between samples. */
+    pos.set(x, gy + 10 * hs, z);  trunks.setMatrixAt(n, mtx.compose(pos, qt, scl));
+    pos.set(x, gy + 26 * hs, z);  crowns.setMatrixAt(n, mtx.compose(pos, qt, scl));
+    pos.set(x, gy + 15 * hs, z);  skirts.setMatrixAt(n, mtx.compose(pos, qt, scl));
     n++;
   }
 
@@ -1287,7 +1417,7 @@ function frame() {
   scene.background.copy(skyNow);
   scene.fog.color.copy(skyNow);
   scene.fog.near = THREE.MathUtils.lerp(8, 26, pr);
-  scene.fog.far  = THREE.MathUtils.lerp(86, 240, pr);
+  scene.fog.far  = THREE.MathUtils.lerp(86, 430, pr);
 
   sun.intensity  = THREE.MathUtils.lerp(1.9, 3.0, pr);
   hemi.intensity = THREE.MathUtils.lerp(1.0, 2.1, pr);
