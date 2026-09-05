@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>英彦山 — The Ascent | Shiraume Lodge</title>
+<meta name="description" content="A scroll-driven climb of the 824 steps to Hikosan Jingū, from the bronze torii of 1637 to the Hōheiden.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500&family=Inter:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root { --deep:#232b28; --mist:#7d8a84; --washi:#f2efe9; --shu:#c8452a; }
+  * { box-sizing:border-box; margin:0; padding:0 }
+  body {
+    background:var(--deep); color:var(--washi);
+    font-family:"Shippori Mincho", serif;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+
+  #scene { position:fixed; inset:0; z-index:0 }
+  #scene canvas { display:block; width:100%; height:100% }
+
+  /* Vignette, and a touch of weight along the bottom for the copy. */
+  #grade {
+    position:fixed; inset:0; z-index:1; pointer-events:none;
+    background:
+      radial-gradient(ellipse at 50% 44%, rgba(0,0,0,0) 42%, rgba(10,14,12,.5) 100%),
+      linear-gradient(to top, rgba(10,14,12,.45), rgba(10,14,12,0) 32%);
+  }
+
+  /* 1400vh — the climb needs the room; 600 rushed it. */
+  #track { position:relative; height:1400vh; z-index:2; pointer-events:none }
+
+  #copy { position:fixed; inset:0; z-index:3; pointer-events:none }
+  .panel {
+    position:absolute; left:0; right:0; top:50%; transform:translateY(-50%);
+    padding:0 7vw; opacity:0; max-width:30rem; will-change:opacity,transform;
+  }
+  .panel.right { left:auto; right:0; text-align:right; margin-left:auto }
+  .panel h1 {
+    font-weight:400; font-size:clamp(2.2rem,9vw,3.4rem); line-height:1.12;
+    text-shadow:0 2px 24px rgba(8,12,10,.75);
+  }
+  .panel h2 {
+    font-weight:400; font-size:clamp(1.4rem,6vw,2.2rem); line-height:1.3;
+    text-shadow:0 2px 22px rgba(8,12,10,.7);
+  }
+  .panel p {
+    font-family:Inter, system-ui, sans-serif; font-weight:300;
+    font-size:.94rem; line-height:1.85; margin-top:1.1rem; max-width:30ch;
+    opacity:.88; text-shadow:0 1px 16px rgba(8,12,10,.8);
+  }
+  .panel.right p { margin-left:auto }
+  .rule { width:3rem; height:1px; background:currentColor; opacity:.45; margin:1.4rem 0 }
+  .panel.right .rule { margin-left:auto }
+  .note { display:block; margin-top:.7rem; font-size:.8rem; opacity:.62 }
+
+  #tategaki {
+    position:fixed; top:50%; right:1rem; transform:translateY(-50%);
+    writing-mode:vertical-rl; font-size:.84rem; letter-spacing:.42em; opacity:0;
+    z-index:4; pointer-events:none; transition:opacity .6s;
+    text-shadow:0 1px 16px rgba(8,12,10,.9);
+  }
+  #steps {
+    position:fixed; bottom:calc(1.8rem + env(safe-area-inset-bottom)); left:1.4rem;
+    z-index:4; font-family:Inter,sans-serif; font-size:.66rem; letter-spacing:.26em;
+    opacity:0; pointer-events:none; transition:opacity .6s;
+    text-shadow:0 1px 12px rgba(8,12,10,.9);
+  }
+  #hint {
+    position:fixed; bottom:calc(1.8rem + env(safe-area-inset-bottom)); left:50%;
+    transform:translateX(-50%); font-family:Inter,sans-serif; font-size:.68rem;
+    letter-spacing:.28em; opacity:.6; z-index:4; transition:opacity .5s; pointer-events:none;
+  }
+  #hint.gone { opacity:0 }
+
+  #back {
+    position:fixed; top:1.4rem; left:1.4rem; z-index:5;
+    font-family:Inter,sans-serif; font-size:.68rem; letter-spacing:.2em;
+    color:var(--washi); text-decoration:none; opacity:.55; transition:opacity .3s;
+    text-shadow:0 1px 12px rgba(8,12,10,.9);
+  }
+  #back:hover { opacity:1 }
+
+  #loading {
+    position:fixed; inset:0; z-index:9; display:grid; place-items:center;
+    background:var(--deep); transition:opacity .9s; padding:2rem; text-align:center;
+  }
+  #loading.done { opacity:0; pointer-events:none }
+  #loadmsg { font-size:.9rem; letter-spacing:.45em }
+  #err {
+    margin-top:1.4rem; font-family:ui-monospace,monospace; font-size:.72rem;
+    letter-spacing:0; line-height:1.6; color:#e8a08f; max-width:34ch; display:none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .panel { transition:none }
+  }
+</style>
+</head>
+<body>
+
+<div id="scene"></div>
+<div id="grade"></div>
+
+<a id="back" href="./index.html">← SHIRAUME LODGE</a>
+
+<div id="copy">
+  <section class="panel" data-in="0.00" data-out="0.15">
+    <h1>英彦山<br>Hikosan</h1>
+    <div class="rule"></div>
+    <p>A mountain climbed for prayer for thirteen hundred years, and the road our guests take when they walk from the lodge.</p>
+  </section>
+
+  <section class="panel" data-in="0.17" data-out="0.34">
+    <h2>It begins at<br>the bronze gate</h2>
+    <p>Cast in 1637 and given by Nabeshima Katsushige, lord of Saga. Seven metres tall, its pillars more than three metres around, built from bronze cylinders stacked one on the next.</p>
+    <span class="note">The 「英彦山」 plaque came a century later — granted by Emperor Reigen in 1734.</span>
+  </section>
+
+  <section class="panel right" data-in="0.36" data-out="0.56">
+    <h2>Then eight hundred<br>and twenty-four</h2>
+    <p>Five hundred metres of irregular stone cut into the hillside. Cherry low down, cedar above, and terraced walls the whole way up — the ruined lodgings of the mountain ascetics who once lived along this climb.</p>
+  </section>
+
+  <section class="panel" data-in="0.58" data-out="0.74">
+    <h2>Stop at the<br>stone gate</h2>
+    <p>Everyone does. Above it the steps narrow and the roof begins to show through the branches.</p>
+  </section>
+
+  <section class="panel right" data-in="0.76" data-out="1.00">
+    <h2>And then the<br>Hōheiden</h2>
+    <p>Rebuilt in 1616 by Hosokawa Tadaoki. Thirty-three metres across, sixteen high, under a shingled roof of sawara cypress that is most of the building.</p>
+    <span class="note">We keep the bath hot for the way down.</span>
+    <div class="rule"></div>
+  </section>
+</div>
+
+<div id="tategaki">英彦山</div>
+<div id="steps">0 / 824</div>
+<div id="hint">SCROLL TO CLIMB</div>
+
+<div id="loading"><div><div id="loadmsg">英彦山</div><div id="err"></div></div></div>
+<div id="track"></div>
+
+<script>
+/* Surface real errors rather than a blank screen. */
+window.addEventListener('error', function (e) {
+  var el = document.getElementById('err');
+  el.style.display = 'block';
+  el.textContent = (e.message || 'Failed to start') + (e.lineno ? '  (line ' + e.lineno + ')' : '');
+  document.getElementById('loadmsg').textContent = '—';
+});
+</script>
+<script type="module" src="./hikosan.js"></script>
+
+</body>
+</html>
