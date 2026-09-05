@@ -24,6 +24,19 @@ const Q = HIGH
 
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+/* Deterministic randomness. The shots are composed against specific tree and
+   stone placements, so the scene must lay out the same way every load —
+   otherwise a framing that reads clearly once is blocked by a trunk the next
+   time. Textures seed separately so their grain is stable too. */
+function seeded(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a * 1664525 + 1013904223) >>> 0;
+    return a / 4294967296;
+  };
+}
+const rnd = seeded(1637);          // the year the gate was cast
+
 /* ── Palette, eyedropped from the references ─────────────── */
 
 const CO = {
@@ -83,18 +96,18 @@ function bronzeTexture() {
   x.fillRect(0, 0, 256, 1024);
 
   for (let i = 0; i < 220; i++) {                    // vertical mineral streaks
-    const px = Math.random() * 256, w = 1 + Math.random() * 9;
+    const px = rnd() * 256, w = 1 + rnd() * 9;
     const g = x.createLinearGradient(px, 0, px + w, 0);
     g.addColorStop(0, 'rgba(122,117,104,0)');
-    g.addColorStop(0.5, 'rgba(122,117,104,' + (0.06 + Math.random() * 0.3) + ')');
+    g.addColorStop(0.5, 'rgba(122,117,104,' + (0.06 + rnd() * 0.3) + ')');
     g.addColorStop(1, 'rgba(122,117,104,0)');
     x.fillStyle = g;
-    x.fillRect(px, Math.random() * 500, w, 400 + Math.random() * 520);
+    x.fillRect(px, rnd() * 500, w, 400 + rnd() * 520);
   }
   for (let i = 0; i < 70; i++) {                     // verdigris pooling
-    const bx = Math.random() * 256, by = Math.random() * 1024, r = 10 + Math.random() * 60;
+    const bx = rnd() * 256, by = rnd() * 1024, r = 10 + rnd() * 60;
     const g = x.createRadialGradient(bx, by, 0, bx, by, r);
-    g.addColorStop(0, 'rgba(109,130,114,' + (0.1 + Math.random() * 0.34) + ')');
+    g.addColorStop(0, 'rgba(109,130,114,' + (0.1 + rnd() * 0.34) + ')');
     g.addColorStop(1, 'rgba(109,130,114,0)');
     x.fillStyle = g;
     x.beginPath(); x.arc(bx, by, r, 0, 6.3); x.fill();
@@ -113,16 +126,16 @@ function stoneTexture(base, moss, speckle) {
   x.fillStyle = base;
   x.fillRect(0, 0, 256, 256);
   for (let i = 0; i < speckle; i++) {
-    const s = 1 + Math.random() * 5;
-    x.fillStyle = 'rgba(' + (90 + Math.random() * 80 | 0) + ',' +
-                            (88 + Math.random() * 76 | 0) + ',' +
-                            (80 + Math.random() * 68 | 0) + ',' + (0.08 + Math.random() * 0.4) + ')';
-    x.fillRect(Math.random() * 256, Math.random() * 256, s, s);
+    const s = 1 + rnd() * 5;
+    x.fillStyle = 'rgba(' + (90 + rnd() * 80 | 0) + ',' +
+                            (88 + rnd() * 76 | 0) + ',' +
+                            (80 + rnd() * 68 | 0) + ',' + (0.08 + rnd() * 0.4) + ')';
+    x.fillRect(rnd() * 256, rnd() * 256, s, s);
   }
   for (let m = 0; m < moss; m++) {
-    const mx = Math.random() * 256, my = Math.random() * 256, r = 5 + Math.random() * 26;
+    const mx = rnd() * 256, my = rnd() * 256, r = 5 + rnd() * 26;
     const g = x.createRadialGradient(mx, my, 0, mx, my, r);
-    g.addColorStop(0, 'rgba(74,90,58,' + (0.14 + Math.random() * 0.42) + ')');
+    g.addColorStop(0, 'rgba(74,90,58,' + (0.14 + rnd() * 0.42) + ')');
     g.addColorStop(1, 'rgba(74,90,58,0)');
     x.fillStyle = g;
     x.beginPath(); x.arc(mx, my, r, 0, 6.3); x.fill();
@@ -136,15 +149,15 @@ function graniteTexture() {
   x.fillStyle = hex(CO.granite);
   x.fillRect(0, 0, 256, 256);
   for (let i = 0; i < 1400; i++) {
-    const v = 150 + Math.random() * 60 | 0;
-    x.fillStyle = 'rgba(' + v + ',' + (v - 4) + ',' + (v - 12) + ',' + (0.2 + Math.random() * 0.5) + ')';
-    x.fillRect(Math.random() * 256, Math.random() * 256, 1 + Math.random() * 3, 1 + Math.random() * 3);
+    const v = 150 + rnd() * 60 | 0;
+    x.fillStyle = 'rgba(' + v + ',' + (v - 4) + ',' + (v - 12) + ',' + (0.2 + rnd() * 0.5) + ')';
+    x.fillRect(rnd() * 256, rnd() * 256, 1 + rnd() * 3, 1 + rnd() * 3);
   }
   const lichen = ['rgba(185,168,156,', 'rgba(196,150,120,', 'rgba(150,158,138,'];
   for (let i = 0; i < 90; i++) {
-    const lx = Math.random() * 256, ly = Math.random() * 256, r = 4 + Math.random() * 20;
+    const lx = rnd() * 256, ly = rnd() * 256, r = 4 + rnd() * 20;
     const g = x.createRadialGradient(lx, ly, 0, lx, ly, r);
-    g.addColorStop(0, lichen[i % 3] + (0.15 + Math.random() * 0.4) + ')');
+    g.addColorStop(0, lichen[i % 3] + (0.15 + rnd() * 0.4) + ')');
     g.addColorStop(1, lichen[i % 3] + '0)');
     x.fillStyle = g;
     x.beginPath(); x.arc(lx, ly, r, 0, 6.3); x.fill();
@@ -163,8 +176,8 @@ function shingleTexture() {
     x.fillStyle = 'rgba(0,0,0,0.26)';                 // shadow under each course
     x.fillRect(0, y, 512, 1.6);
     for (let s = 0; s < 40; s++) {
-      const sx = off + s * 13 + (Math.random() - 0.5) * 2.2;
-      const v = 0.03 + Math.random() * 0.1;
+      const sx = off + s * 13 + (rnd() - 0.5) * 2.2;
+      const v = 0.03 + rnd() * 0.1;
       x.fillStyle = 'rgba(150,132,116,' + v + ')';
       x.fillRect(sx, y + 1.6, 12, rh - 1.6);
       x.fillStyle = 'rgba(0,0,0,0.14)';
@@ -216,29 +229,29 @@ function groundTexture() {
   x.fillStyle = '#c9c6bb';
   x.fillRect(0, 0, 512, 512);
   for (let i = 0; i < 60; i++) {                       // broad mottling
-    const mx = Math.random() * 512, my = Math.random() * 512, r = 30 + Math.random() * 110;
+    const mx = rnd() * 512, my = rnd() * 512, r = 30 + rnd() * 110;
     const g = x.createRadialGradient(mx, my, 0, mx, my, r);
-    const tone = Math.random() < 0.5 ? '150,146,128' : '186,180,164';
-    g.addColorStop(0, 'rgba(' + tone + ',' + (0.2 + Math.random() * 0.4) + ')');
+    const tone = rnd() < 0.5 ? '150,146,128' : '186,180,164';
+    g.addColorStop(0, 'rgba(' + tone + ',' + (0.2 + rnd() * 0.4) + ')');
     g.addColorStop(1, 'rgba(' + tone + ',0)');
     x.fillStyle = g;
     x.beginPath(); x.arc(mx, my, r, 0, 6.3); x.fill();
   }
   for (let i = 0; i < 5000; i++) {                     // needle litter
-    const a = Math.random() * 6.3, len = 3 + Math.random() * 9;
-    const px = Math.random() * 512, py = Math.random() * 512;
-    x.strokeStyle = 'rgba(' + (110 + Math.random() * 60 | 0) + ',' +
-                              (92 + Math.random() * 46 | 0) + ',' +
-                              (66 + Math.random() * 36 | 0) + ',' + (0.1 + Math.random() * 0.35) + ')';
+    const a = rnd() * 6.3, len = 3 + rnd() * 9;
+    const px = rnd() * 512, py = rnd() * 512;
+    x.strokeStyle = 'rgba(' + (110 + rnd() * 60 | 0) + ',' +
+                              (92 + rnd() * 46 | 0) + ',' +
+                              (66 + rnd() * 36 | 0) + ',' + (0.1 + rnd() * 0.35) + ')';
     x.lineWidth = 0.9;
     x.beginPath();
     x.moveTo(px, py); x.lineTo(px + Math.cos(a) * len, py + Math.sin(a) * len);
     x.stroke();
   }
   for (let i = 0; i < 1400; i++) {                     // grit
-    const v = 90 + Math.random() * 110 | 0;
-    x.fillStyle = 'rgba(' + v + ',' + v + ',' + (v - 12) + ',' + (0.1 + Math.random() * 0.3) + ')';
-    x.fillRect(Math.random() * 512, Math.random() * 512, 1 + Math.random() * 3, 1 + Math.random() * 3);
+    const v = 90 + rnd() * 110 | 0;
+    x.fillStyle = 'rgba(' + v + ',' + v + ',' + (v - 12) + ',' + (0.1 + rnd() * 0.3) + ')';
+    x.fillRect(rnd() * 512, rnd() * 512, 1 + rnd() * 3, 1 + rnd() * 3);
   }
   return finish(c, 88, 88);
 }
@@ -250,15 +263,15 @@ function boardTexture() {
   x.fillRect(0, 0, 256, 256);
   for (let i = 0; i < 18; i++) {
     const bx = i * (256 / 18);
-    const v = 0.05 + Math.random() * 0.16;
+    const v = 0.05 + rnd() * 0.16;
     x.fillStyle = 'rgba(60,52,44,' + v + ')';
     x.fillRect(bx, 0, 256 / 18 - 1.5, 256);
     x.fillStyle = 'rgba(30,26,22,0.35)';
     x.fillRect(bx + 256 / 18 - 1.5, 0, 1.5, 256);
   }
   for (let i = 0; i < 300; i++) {                      // grain
-    x.fillStyle = 'rgba(40,34,28,' + (0.03 + Math.random() * 0.08) + ')';
-    x.fillRect(Math.random() * 256, Math.random() * 256, 1, 8 + Math.random() * 40);
+    x.fillStyle = 'rgba(40,34,28,' + (0.03 + rnd() * 0.08) + ')';
+    x.fillRect(rnd() * 256, rnd() * 256, 1, 8 + rnd() * 40);
   }
   return finish(c);
 }
@@ -512,9 +525,9 @@ function roughSlab() {
   const p = g.attributes.position;
   for (let i = 0; i < p.count; i++) {
     p.setXYZ(i,
-      p.getX(i) + (Math.random() - 0.5) * 0.16,
-      p.getY(i) + (Math.random() - 0.5) * 0.1,
-      p.getZ(i) + (Math.random() - 0.5) * 0.16);
+      p.getX(i) + (rnd() - 0.5) * 0.16,
+      p.getY(i) + (rnd() - 0.5) * 0.1,
+      p.getZ(i) + (rnd() - 0.5) * 0.16);
   }
   g.computeVertexNormals();
   return g;
@@ -539,11 +552,11 @@ const RISER = 150 / 824;                       // real rise spread over the real
     const y = Math.round(f.p.y / RISER) * RISER;
 
     for (let k = 0; k < perTread; k++) {
-      const lat = (k / (perTread - 1) - 0.5) * w * 0.74 + (Math.random() - 0.5) * 0.3;
+      const lat = (k / (perTread - 1) - 0.5) * w * 0.74 + (rnd() - 0.5) * 0.3;
       pos.set(f.p.x + f.nx * lat, y - 0.09, f.p.z + f.nz * lat);
-      eu.set((Math.random() - 0.5) * 0.05, f.yaw + (Math.random() - 0.5) * 0.16, (Math.random() - 0.5) * 0.04);
+      eu.set((rnd() - 0.5) * 0.05, f.yaw + (rnd() - 0.5) * 0.16, (rnd() - 0.5) * 0.04);
       qt.setFromEuler(eu);
-      scl.set(w / perTread * (0.95 + Math.random() * 0.22), 0.2 + Math.random() * 0.08, 0.62 + Math.random() * 0.16);
+      scl.set(w / perTread * (0.95 + rnd() * 0.22), 0.2 + rnd() * 0.08, 0.62 + rnd() * 0.16);
       mesh.setMatrixAt(n++, mtx.compose(pos, qt, scl));
     }
   }
@@ -567,22 +580,22 @@ const RISER = 150 / 824;                       // real rise spread over the real
     for (let k = 0; k < 2; k++) {
       const sg = k ? 1 : -1, lat = sg * (w / 2 + 0.55);
       pos.set(f.p.x + f.nx * lat, y + 0.2, f.p.z + f.nz * lat);
-      eu.set(0, f.yaw + (Math.random() - 0.5) * 0.2, 0); qt.setFromEuler(eu);
-      scl.set(1.15 + Math.random() * 0.35, 0.5 + Math.random() * 0.45, 0.72);
+      eu.set(0, f.yaw + (rnd() - 0.5) * 0.2, 0); qt.setFromEuler(eu);
+      scl.set(1.15 + rnd() * 0.35, 0.5 + rnd() * 0.45, 0.72);
       mesh.setMatrixAt(n++, mtx.compose(pos, qt, scl));
     }
   }
 
   /* Terraced lodging platforms — the ruins that line the whole climb. */
   for (let i = 0; i < 300 && n < mesh.instanceCount; i++) {
-    const t = 0.1 + Math.random() * 0.82;
+    const t = 0.1 + rnd() * 0.82;
     const f = frameAt(t);
-    const sg = Math.random() < 0.5 ? 1 : -1;
-    const lat = sg * (pathWidth(t) / 2 + 4.5 + Math.random() * 9);
+    const sg = rnd() < 0.5 ? 1 : -1;
+    const lat = sg * (pathWidth(t) / 2 + 4.5 + rnd() * 9);
     const x = f.p.x + f.nx * lat, z = f.p.z + f.nz * lat;
-    pos.set(x, terrainAt(x, z) + 0.6 + Math.random() * 1.4, z);
-    eu.set(0, f.yaw + (Math.random() - 0.5) * 0.4, 0); qt.setFromEuler(eu);
-    scl.set(1.4 + Math.random() * 2.2, 0.5 + Math.random() * 0.9, 0.8 + Math.random() * 0.5);
+    pos.set(x, terrainAt(x, z) + 0.6 + rnd() * 1.4, z);
+    eu.set(0, f.yaw + (rnd() - 0.5) * 0.4, 0); qt.setFromEuler(eu);
+    scl.set(1.4 + rnd() * 2.2, 0.5 + rnd() * 0.9, 0.8 + rnd() * 0.5);
     mesh.setMatrixAt(n++, mtx.compose(pos, qt, scl));
   }
   mesh.count = n;
@@ -708,35 +721,92 @@ function bronzeTorii() {
   return shadowed(g);
 }
 
-/* Komainu on tall pedestals, flanking the gate. */
-function komainu(flip) {
+/* Komainu — a seated lion-dog on its pedestal. The pair is 阿吽: `open`
+   gives the a-gyō with its mouth open, the other keeps it shut. Built to
+   read in silhouette — high chest, straight forelegs, folded haunches,
+   heavy mane collar and a flame tail. */
+function komainu(open) {
   const g = new THREE.Group();
-  const ped = new THREE.Mesh(chamferBox(0.9, 2.0, 0.9, 0.05), M.granite);
+  const S = M.granite;
+  const add = (geo, x, y, z, rx, ry) => {
+    const m = new THREE.Mesh(geo, S);
+    m.position.set(x, y, z);
+    if (rx) m.rotation.x = rx;
+    if (ry) m.rotation.y = ry;
+    g.add(m);
+    return m;
+  };
+
+  /* Pedestal, tapering slightly as the carved ones do. */
+  const ped = new THREE.Mesh(chamferBox(0.82, 2.0, 0.82, 0.05), S);
   ped.position.y = 1.0;
   g.add(ped);
-  const cap = new THREE.Mesh(chamferBox(1.15, 0.16, 1.15, 0.04), M.granite);
-  cap.position.y = 2.08;
-  g.add(cap);
+  add(chamferBox(1.02, 0.14, 1.02, 0.04), 0, 2.07, 0);      // cap
+  add(chamferBox(1.0, 0.16, 1.0, 0.04), 0, 0.08, 0);        // footing
 
-  const body = new THREE.Mesh(new THREE.SphereGeometry(0.34, 10, 8), M.granite);
-  body.scale.set(1, 0.86, 1.5);
-  body.position.set(0, 2.46, -0.06);
-  g.add(body);
-  const chest = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.26, 0.6, 8), M.granite);
-  chest.position.set(0, 2.6, 0.3);
-  g.add(chest);
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.25, 10, 8), M.granite);
-  head.position.set(0, 3.0, 0.34);
-  g.add(head);
-  const mane = new THREE.Mesh(new THREE.DodecahedronGeometry(0.3, 0), M.granite);
-  mane.position.set(0, 2.96, 0.24);
-  g.add(mane);
-  const tail = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.7, 6), M.granite);
-  tail.position.set(0, 2.82, -0.44);
-  tail.rotation.x = -0.5;
-  g.add(tail);
+  const B = 2.14;                                            // the animal's floor
+  add(chamferBox(0.78, 0.1, 0.96, 0.03), 0, B + 0.05, -0.02);
 
-  g.rotation.y = flip ? Math.PI : 0;
+  /* Haunches folded under, rump low and wide. */
+  const rump = add(new THREE.SphereGeometry(0.3, 12, 10), 0, B + 0.34, -0.24);
+  rump.scale.set(1.0, 0.92, 1.05);
+  for (const sx of [-1, 1]) {
+    const h = add(new THREE.SphereGeometry(0.19, 10, 8), sx * 0.19, B + 0.28, -0.2);
+    h.scale.set(0.85, 0.95, 1.25);
+    add(new THREE.SphereGeometry(0.1, 8, 6), sx * 0.2, B + 0.09, 0.02);   // hind paw
+  }
+
+  /* Torso rising forward to a high chest. */
+  const torso = add(new THREE.CylinderGeometry(0.25, 0.29, 0.52, 12), 0, B + 0.52, -0.04, -0.34);
+  torso.scale.set(1.0, 1.0, 0.85);
+  const chest = add(new THREE.SphereGeometry(0.26, 12, 10), 0, B + 0.66, 0.16);
+  chest.scale.set(1.0, 0.95, 0.85);
+
+  /* Forelegs straight down to the slab — the seated stance. */
+  for (const sx of [-1, 1]) {
+    add(new THREE.CylinderGeometry(0.075, 0.09, 0.56, 8), sx * 0.155, B + 0.34, 0.25, 0.06);
+    const paw = add(new THREE.SphereGeometry(0.1, 8, 6), sx * 0.155, B + 0.09, 0.3);
+    paw.scale.set(1, 0.7, 1.25);
+  }
+
+  /* Head, snout and ears. */
+  add(new THREE.CylinderGeometry(0.13, 0.15, 0.16, 10), 0, B + 0.85, 0.12);   // neck
+  const head = add(new THREE.SphereGeometry(0.2, 12, 10), 0, B + 1.0, 0.13);
+  head.scale.set(1.0, 0.95, 1.05);
+  const snout = add(chamferBox(0.17, 0.13, 0.2, 0.03), 0, B + 0.97, 0.3);
+  snout.rotation.x = 0.1;
+  void snout;
+  add(chamferBox(0.2, 0.06, 0.1, 0.02), 0, B + 1.07, 0.27);                   // brow
+  for (const sx of [-1, 1]) {
+    const ear = add(new THREE.ConeGeometry(0.07, 0.13, 5), sx * 0.13, B + 1.14, 0.06, 0, 0);
+    ear.rotation.z = sx * 0.5;
+  }
+
+  /* 阿 has its mouth open, 吽 has it shut. */
+  if (open) {
+    const jaw = new THREE.Mesh(chamferBox(0.14, 0.07, 0.16, 0.02),
+      new THREE.MeshStandardMaterial({ color: 0x3b3730, roughness: 1 }));
+    jaw.position.set(0, B + 0.91, 0.33);
+    g.add(jaw);
+  }
+
+  /* Mane: a collar of curls round the head, and a few down the chest. */
+  const curl = new THREE.SphereGeometry(0.085, 8, 6);
+  for (let i = 0; i < 11; i++) {
+    const a = (i / 11) * Math.PI * 2;
+    add(curl, Math.cos(a) * 0.25, B + 0.97 + Math.sin(a) * 0.22, 0.02);
+  }
+  for (let i = 0; i < 3; i++) add(curl, (i - 1) * 0.13, B + 0.74 + (i % 2) * 0.07, 0.3);
+
+  /* Flame tail, fanned up behind. */
+  for (let i = 0; i < 3; i++) {
+    const t = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.62 - i * 0.08, 6), S);
+    t.position.set((i - 1) * 0.11, B + 0.72, -0.42);
+    t.rotation.x = -0.42 + (i - 1) * 0.1;
+    t.rotation.z = (i - 1) * 0.28;
+    g.add(t);
+  }
+
   return shadowed(g);
 }
 
@@ -1143,8 +1213,12 @@ function hoheiden() {
 /* The bronze gate, its komainu, and the paved apron before the climb. */
 (function placeGate() {
   scene.add(place(bronzeTorii(), TORII_T, 0, 0));
-  scene.add(place(komainu(false), TORII_T, -4.4, 0));
-  scene.add(place(komainu(true),  TORII_T,  4.4, 0));
+  const komaL = place(komainu(true), TORII_T, -4.4, 0);    // 阿, mouth open
+  komaL.rotation.y += 0.26;
+  scene.add(komaL);
+  const komaR = place(komainu(false), TORII_T, 4.4, 0);    // 吽, mouth shut
+  komaR.rotation.y -= 0.26;
+  scene.add(komaR);
 
   const f = frameAt(TORII_T);
   const apron = new THREE.Mesh(new THREE.CircleGeometry(9, 24), M.step);
@@ -1194,18 +1268,18 @@ scene.add(place(stoneTorii(), STONE_T, 0, 0));
 
   while (n < N && guard++ < N * 24) {
     /* Cluster along the corridor rather than scattering over the whole map. */
-    const t = Math.random();
+    const t = rnd();
     const f = frameAt(t);
-    const sg = Math.random() < 0.5 ? 1 : -1;
+    const sg = rnd() < 0.5 ? 1 : -1;
     /* Weighted toward the path so the ravine walls are wooded, not empty. */
-    const lat = sg * (pathWidth(t) / 2 + 3.2 + Math.pow(Math.random(), 1.7) * 52);
-    const x = f.p.x + f.nx * lat + (Math.random() - 0.5) * 10;
-    const z = f.p.z + f.nz * lat + (Math.random() - 0.5) * 10;
+    const lat = sg * (pathWidth(t) / 2 + 3.2 + Math.pow(rnd(), 1.7) * 52);
+    const x = f.p.x + f.nx * lat + (rnd() - 0.5) * 10;
+    const z = f.p.z + f.nz * lat + (rnd() - 0.5) * 10;
     if (nearestPath(x, z).d < pathWidth(t) / 2 + 2.4) continue;
     if (Math.hypot(x - COURT.x, z - COURT.z) < 40) continue;   // keep the court clear
 
-    const gy = terrainAt(x, z), hs = 0.7 + Math.random() * 1.0;
-    eu.set(0, Math.random() * 6.3, 0); qt.setFromEuler(eu); scl.set(hs, hs, hs);
+    const gy = terrainAt(x, z), hs = 0.7 + rnd() * 1.0;
+    eu.set(0, rnd() * 6.3, 0); qt.setFromEuler(eu); scl.set(hs, hs, hs);
 
     pos.set(x, gy + 11 * hs, z);    trunks.setMatrixAt(n, mtx.compose(pos, qt, scl));
     pos.set(x, gy + 28 * hs, z);    crowns.setMatrixAt(n, mtx.compose(pos, qt, scl));
@@ -1213,27 +1287,27 @@ scene.add(place(stoneTorii(), STONE_T, 0, 0));
     n++;
 
     /* Low canopy near the gate and the lodging ruins. */
-    if (t < 0.4 && nl < low.instanceCount && Math.random() < 0.55) {
-      const s2 = 0.7 + Math.random() * 0.7;
+    if (t < 0.4 && nl < low.instanceCount && rnd() < 0.55) {
+      const s2 = 0.7 + rnd() * 0.7;
       scl.set(s2, s2 * 0.8, s2);
-      pos.set(x + (Math.random() - 0.5) * 8, gy + 5 * s2, z + (Math.random() - 0.5) * 8);
+      pos.set(x + (rnd() - 0.5) * 8, gy + 5 * s2, z + (rnd() - 0.5) * 8);
       low.setMatrixAt(nl++, mtx.compose(pos, qt, scl));
     }
-    if (t < 0.3 && nb < bloom.instanceCount && Math.random() < 0.4) {
-      const s3 = 0.55 + Math.random() * 0.5;
+    if (t < 0.3 && nb < bloom.instanceCount && rnd() < 0.4) {
+      const s3 = 0.55 + rnd() * 0.5;
       scl.set(s3, s3 * 0.85, s3);
-      pos.set(x + (Math.random() - 0.5) * 9, gy + 4.6 * s3, z + (Math.random() - 0.5) * 9);
+      pos.set(x + (rnd() - 0.5) * 9, gy + 4.6 * s3, z + (rnd() - 0.5) * 9);
       bloom.setMatrixAt(nb++, mtx.compose(pos, qt, scl));
     }
   }
   /* The slope rising behind the court, which the path never reaches. */
   const behind = BEHIND;
   for (let i = 0; i < behind; i++) {
-    const a = Math.random() * Math.PI * 2;
-    const rad = 42 + Math.pow(Math.random(), 0.8) * 130;
+    const a = rnd() * Math.PI * 2;
+    const rad = 42 + Math.pow(rnd(), 0.8) * 130;
     const x = COURT.x + Math.cos(a) * rad, z = COURT.z + Math.sin(a) * rad;
-    const gy = terrainAt(x, z), hs = 0.8 + Math.random() * 1.1;
-    eu.set(0, Math.random() * 6.3, 0); qt.setFromEuler(eu); scl.set(hs, hs, hs);
+    const gy = terrainAt(x, z), hs = 0.8 + rnd() * 1.1;
+    eu.set(0, rnd() * 6.3, 0); qt.setFromEuler(eu); scl.set(hs, hs, hs);
     /* Sunk slightly: the terrain mesh samples every ~3 m, so an exactly
        seated trunk can still hang over a dip between samples. */
     pos.set(x, gy + 10 * hs, z);  trunks.setMatrixAt(n, mtx.compose(pos, qt, scl));
