@@ -47,3 +47,70 @@ Shugendō. Predecessor burnt in the Ōtomo attack of 1568.
 - https://bunka.nii.ac.jp/heritages/detail/124304
 - https://www.fsg.pref.fukuoka.jp/hikosan/shiseki/omotesando01.html
 - https://ja.wikipedia.org/wiki/英彦山神宮
+
+---
+
+# Observed from photographs
+
+Text sources got several things wrong that the photos settle. Colours are
+eyedropped approximations, good enough to build against.
+
+## 銅の鳥居 — bronze torii
+
+- Columns are **massively tapered** and read as **stacked cylinder sections**:
+  strong horizontal banding rings all the way up. Not smooth.
+- Colour is **not green**. Base metal is near-black brown `#3a3a34`, with
+  verdigris `#6d8272` pooling in bands and pale mineral streaking `#7a7568`
+  running down. Highly variegated — a flat bronze material will look wrong.
+- Each column stands on a **bulbous flared moulding** over a square stone plinth.
+- **Kasagi**: gentle curve, upturned ends, **verdigris green on the top face**
+  `#62806b`, dark underneath. A separate shimagi sits below it.
+- **Nuki** passes through both columns and protrudes each side.
+- **The plaque is the focal point** — gold/ochre `#c9a54a` tablet with 英彦山
+  vertically, inside an ornate **verdigris scrollwork frame** with dark bosses.
+- Stands at the top of ~8 broad stone steps, **komainu on tall pedestals** either
+  side. A shukubō with white plaster walls and a **verdigris copper roof** sits
+  to the left.
+
+## The stair
+
+- Treads are **irregular natural stone**, several rough slabs per step — never
+  cut regular blocks. Grey `#6f6f68`–`#8a887e`, moss `#4a5a3a` in the joints.
+- ⚠︎ **Vermilion metal lantern posts line both sides** — slim square red posts
+  `#d94525` carrying a box lantern with a **pale mint frosted panel** `#b8d4c0`
+  and a red pyramid cap. Marked 奉納. These are the loudest thing in the scene
+  and no text source mentioned them.
+- Grey stone lanterns are interspersed between them.
+- Low rough stone retaining walls flank the treads.
+- Canopy is mixed: dark cedar trunks with **coppery-pale deciduous foliage**
+  through them. Light is hazy and comes down the axis of the stair.
+- A stone torii is visible in silhouette at the head of the flight.
+
+## 奉幣殿 — Hōheiden
+
+- ⚠︎ **The outer colonnade is bare weathered timber** `#8a8076`, not vermilion.
+  Text said 朱塗りの柱, which would paint the whole thing red. Only the **inner
+  core** is vermilion `#c8452a`. Upper outer walls are grey vertical boarding.
+- The roof is **~60% of the building's visual height** — enormous, matte dark
+  brown `#4a3f38`, deep concave sori, flared upturned ends.
+- Ridge carries **gold crests** `#c9a54a` at intervals and **pale verdigris caps**
+  `#7fa896` at the ends and corners.
+- A **white band with black dashes** runs the eave line under the roof.
+- **Black renji-mado lattice windows** `#1a1a18` in rows, framed in vermilion —
+  the strongest pattern on the facade.
+- Centre bay: thick **shimenawa** `#c9b183` with white shide, and a large dark
+  bronze **waniguchi** gong hung below it, with two pale bell ropes.
+- Vermilion balustrade along the veranda, brighter orange panelled base below.
+- Two grey stone lanterns stand symmetrically on **pale grey gravel** `#b5b0a6`.
+- A **stone torii with shimenawa** stands to the right at the head of a stair.
+- Backdrop is dense cedar on a steep slope, including a **sacred cedar wrapped
+  in shimenawa**.
+
+## Stone torii (招魂社 pattern)
+
+- **Granite**, pale grey `#a8a49c` mottled with pink and orange lichen.
+- Round tapered columns on round stone bases; kasagi gently curved with angled
+  cut ends; separate shimagi; rectangular nuki protruding.
+- Carved stone plaque with a scrolled border on the gakuzuka.
+- **Bamboo pole and rope with four shide** strung between the columns.
+- Surrounded by stone lanterns marked 奉, on reddish cedar-needle ground.
