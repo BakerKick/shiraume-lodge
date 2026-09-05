@@ -27,7 +27,7 @@ const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 /* ── Palette, eyedropped from the references ─────────────── */
 
 const CO = {
-  bronzeDark:  0x3a3a34,
+  bronzeDark:  0x4c4c44,
   bronzePatina:0x6d8272,
   bronzeStreak:0x7a7568,
   kasagiTop:   0x62806b,
@@ -292,8 +292,8 @@ const texGravel  = stoneTexture('#b5b0a6', 10, 1200);
 texGravel.repeat.set(14, 14);
 
 const M = {
-  bronze:  new THREE.MeshStandardMaterial({ map: texBronze, roughness: 0.52, metalness: 0.72 }),
-  verdi:   new THREE.MeshStandardMaterial({ color: CO.kasagiTop, roughness: 0.72, metalness: 0.35 }),
+  bronze:  new THREE.MeshStandardMaterial({ map: texBronze, roughness: 0.5, metalness: 0.22 }),
+  verdi:   new THREE.MeshStandardMaterial({ color: CO.kasagiTop, roughness: 0.72, metalness: 0.12 }),
   step:    new THREE.MeshStandardMaterial({ map: texStep, roughness: 0.96 }),
   wall:    new THREE.MeshStandardMaterial({ map: texWall, roughness: 0.97 }),
   granite: new THREE.MeshStandardMaterial({ map: texGranite, roughness: 0.9 }),
@@ -308,12 +308,12 @@ const M = {
   timber:  new THREE.MeshStandardMaterial({ map: texBoard, roughness: 0.9 }),
   vermil:  new THREE.MeshStandardMaterial({ color: CO.vermilion, roughness: 0.7 }),
   renji:   new THREE.MeshStandardMaterial({ map: texRenji, roughness: 0.85 }),
-  gold:    new THREE.MeshStandardMaterial({ color: CO.ridgeGold, roughness: 0.42, metalness: 0.7 }),
-  ridgeV:  new THREE.MeshStandardMaterial({ color: CO.ridgeVerd, roughness: 0.66, metalness: 0.3 }),
+  gold:    new THREE.MeshStandardMaterial({ color: CO.ridgeGold, roughness: 0.45, metalness: 0.3 }),
+  ridgeV:  new THREE.MeshStandardMaterial({ color: CO.ridgeVerd, roughness: 0.66, metalness: 0.12 }),
   rope:    new THREE.MeshStandardMaterial({ color: CO.rope, roughness: 1 }),
   paper:   new THREE.MeshStandardMaterial({ color: 0xf4f1e8, roughness: 1, side: THREE.DoubleSide }),
   dark:    new THREE.MeshStandardMaterial({ color: 0x241f1a, roughness: 0.8 }),
-  waniguchi: new THREE.MeshStandardMaterial({ color: 0x4a4438, roughness: 0.5, metalness: 0.65 }),
+  waniguchi: new THREE.MeshStandardMaterial({ color: 0x5a5344, roughness: 0.55, metalness: 0.25 }),
 
   bark:  new THREE.MeshStandardMaterial({ color: CO.bark, roughness: 0.95 }),
   cedar: new THREE.MeshStandardMaterial({ color: CO.cedar, roughness: 0.9 }),
@@ -685,23 +685,24 @@ function bronzeTorii() {
   zuka.position.set(0, H - 0.55, 0);
   g.add(zuka);
 
+  const FACE = 0.2;                                    // local +z faces the approach
   const frame = new THREE.Mesh(chamferBox(1.16, 1.36, 0.16, 0.04), M.verdi);
-  frame.position.set(0, H - 0.52, 0.2);
+  frame.position.set(0, H - 0.52, FACE);
   g.add(frame);
   for (let i = 0; i < 2; i++) {                        // the curled scroll ends on top
     const sg = i ? 1 : -1;
     const scroll = new THREE.Mesh(new THREE.TorusGeometry(0.13, 0.06, 6, 14), M.verdi);
-    scroll.position.set(sg * 0.5, H + 0.2, 0.2);
+    scroll.position.set(sg * 0.5, H + 0.2, FACE);
     g.add(scroll);
   }
   const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 1.0, 10), M.verdi);
   bar.rotation.z = Math.PI / 2;
-  bar.position.set(0, H + 0.2, 0.2);
+  bar.position.set(0, H + 0.2, FACE);
   g.add(bar);
 
   const tablet = new THREE.Mesh(new THREE.PlaneGeometry(0.82, 1.02),
-    new THREE.MeshStandardMaterial({ map: plaqueTexture(), roughness: 0.5, metalness: 0.42 }));
-  tablet.position.set(0, H - 0.52, 0.285);
+    new THREE.MeshStandardMaterial({ map: plaqueTexture(), roughness: 0.5, metalness: 0.15 }));
+  tablet.position.set(0, H - 0.52, FACE + 0.085);
   g.add(tablet);
 
   return shadowed(g);
@@ -1154,13 +1155,15 @@ function hoheiden() {
 
   /* A shukubō beside the gate — white plaster, verdigris copper roof. */
   const bo = new THREE.Group();
-  bo.add(new THREE.Mesh(chamferBox(11, 4, 8, 0.1), M.plaster).translateY(2));
-  const roof = new THREE.Mesh(new THREE.ConeGeometry(1, 2.6, 4, 1), M.copper);
-  roof.scale.set(9.5, 1, 7);
+  bo.add(new THREE.Mesh(chamferBox(9, 5, 7, 0.1), M.plaster).translateY(2.5));
+  const roof = new THREE.Mesh(new THREE.ConeGeometry(1, 2.4, 4, 1), M.copper);
+  roof.scale.set(8, 1, 6.2);
   roof.rotation.y = Math.PI / 4;
-  roof.position.y = 5.2;
+  roof.position.y = 5.6;
   bo.add(roof);
-  scene.add(place(shadowed(bo), TORII_T + 0.012, -13, 0));
+  const boPlaced = place(shadowed(bo), TORII_T + 0.03, -19, 0);
+  boPlaced.position.y = terrainAt(boPlaced.position.x, boPlaced.position.z) - 2.2;
+  scene.add(boPlaced);
 })();
 
 /* The stone gate partway up. */
@@ -1247,19 +1250,19 @@ scene.add(place(stoneTorii(), STONE_T, 0, 0));
 /* ── Light and air ───────────────────────────────────────── */
 
 const SKY = {
-  low:  new THREE.Color(0x7d8c84),   // hazy green light under the trees
-  mid:  new THREE.Color(0xb4bdb3),   // sun coming down the axis of the stair
+  low:  new THREE.Color(0x97a89d),   // hazy green light under the trees
+  mid:  new THREE.Color(0xbfc7bc),   // sun coming down the axis of the stair
   high: new THREE.Color(0xe9e9e3)    // overcast white at the court
 };
 
 scene.background = SKY.low.clone();
-scene.fog = new THREE.Fog(SKY.low.clone(), 12, 130);
+scene.fog = new THREE.Fog(SKY.low.clone(), 16, 135);
 
-const hemi = new THREE.HemisphereLight(0xbccdd2, 0x4a4a30, 1.15);
+const hemi = new THREE.HemisphereLight(0xc6d6da, 0x5c5c3e, 1.7);
 scene.add(hemi);
 
 const sun = new THREE.DirectionalLight(0xfff0d8, 2.2);
-sun.position.set(-40, 70, 30);
+sun.position.set(-55, 62, 78);
 if (Q.shadows) {
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
@@ -1307,7 +1310,7 @@ const SHOTS = [
   /* Act I — the bronze gate */
   { p: 0.000, from: onPath(0.002, 0,    1.7),  to: onPath(0.050, 0,  3.4) },
   { p: 0.055, from: onPath(0.026, 0,    1.15), to: onPath(0.046, 0,  5.6) },
-  { p: 0.105, from: onPath(0.041, 0,    1.5),  to: onPath(0.046, 0,  5.2) },
+  { p: 0.105, from: onPath(0.034, 0,    1.45), to: onPath(0.048, 0,  4.9) },
   { p: 0.155, from: onPath(0.058, 0,    1.9),  to: onPath(0.030, 0,  3.2) },
 
   /* Act II — the 824 steps */
@@ -1416,12 +1419,12 @@ function frame() {
   else          skyNow.copy(SKY.mid).lerp(SKY.high, (pr - 0.5) / 0.5);
   scene.background.copy(skyNow);
   scene.fog.color.copy(skyNow);
-  scene.fog.near = THREE.MathUtils.lerp(8, 26, pr);
-  scene.fog.far  = THREE.MathUtils.lerp(86, 430, pr);
+  scene.fog.near = THREE.MathUtils.lerp(16, 30, pr);
+  scene.fog.far  = THREE.MathUtils.lerp(135, 430, pr);
 
-  sun.intensity  = THREE.MathUtils.lerp(1.9, 3.0, pr);
-  hemi.intensity = THREE.MathUtils.lerp(1.0, 2.1, pr);
-  renderer.toneMappingExposure = THREE.MathUtils.lerp(0.95, 1.12, pr);
+  sun.intensity  = THREE.MathUtils.lerp(2.5, 3.0, pr);
+  hemi.intensity = THREE.MathUtils.lerp(1.75, 2.2, pr);
+  renderer.toneMappingExposure = THREE.MathUtils.lerp(1.08, 1.16, pr);
 
   /* The lantern panes catch light once you are among them. */
   M.mint.emissiveIntensity = 0.2 + THREE.MathUtils.smoothstep(pr, 0.2, 0.4) * 0.5;
